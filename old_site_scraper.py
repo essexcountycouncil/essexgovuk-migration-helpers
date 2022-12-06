@@ -1,7 +1,6 @@
 from urllib.parse import urlparse, urljoin
 import scrapy
 
-# TARGET_DOMAIN = 'ctfassets.net'
 FOLLOW_DOMAIN = 'www.essex.gov.uk'
 MIGRATION_TEST_BASE_URL = "https://portal.whitemoss-5a7067b3.uksouth.azurecontainerapps.io"
 
@@ -11,9 +10,6 @@ class AssetSpider(scrapy.Spider):
     start_urls = [
         'https://www.essex.gov.uk/legal-services-legal-basis-tables'
     ]
-    # custom_settings = {
-    #     "DEPTH_LIMIT": 2
-    # }
 
     def parse(self, response):
         contains_table = bool(response.xpath("//table"))
@@ -49,5 +45,3 @@ class AssetSpider(scrapy.Spider):
         
             if contains_table:
                 yield response.follow(urljoin(MIGRATION_TEST_BASE_URL, urlparse(response.url).path))
-
-        
