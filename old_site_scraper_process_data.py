@@ -1,14 +1,13 @@
 import csv
 from urllib.parse import urlparse, urljoin
 
-OLD_BASE = "https://www.essex.gov.uk"
-NEW_BASE = "https://portal.whitemoss-5a7067b3.uksouth.azurecontainerapps.io"
+from constants import OLD_BASE_URL, MIGRATION_TEST_BASE_URL
 
 paths = set()
 results_all = dict()
 results_combined = []
 
-with open("output.csv") as f:
+with open("./output/output.csv") as f:
     rows = csv.reader(f)
     for row in rows:
         if row[0] == "url":
@@ -17,8 +16,8 @@ with open("output.csv") as f:
         results_all[row[0]] = row[1]
     
 for path in paths: 
-    old_path = urljoin(OLD_BASE, path)
-    new_path = urljoin(NEW_BASE, path)
+    old_path = urljoin(OLD_BASE_URL, path)
+    new_path = urljoin(MIGRATION_TEST_BASE_URL, path)
     
     try:
         old_has_table = results_all[old_path]
