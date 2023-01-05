@@ -25,8 +25,7 @@ def get_urls():
     with open("./output/contentful_redirects.json") as f:
         redirects = json.load(f)
 
-    redirects = [x for x, _ in redirects.items()]
-
+    redirects = [x.replace("*", "Vyx2gbebyyyV6bA5") for x, _ in redirects.items()]
     
     oldcrawl_latest = [x for x in os.listdir("./output") if x.startswith("oldcrawl")][-1]
 
