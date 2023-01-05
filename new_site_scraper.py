@@ -2,12 +2,12 @@ from urllib.parse import urlparse, urljoin
 import scrapy
 
 from basescraper import BaseScraper
-from constants import OLD_DOMAIN, OLD_BASE_URL, CONTENTFUL_DOMAIN
+from constants import MIGRATION_TEST_DOMAIN, MIGRATION_TEST_BASE_URL, MIGRATION_TEST_MOCK_URL, CONTENTFUL_DOMAIN
 
-class OldSiteScraper(BaseScraper):
-    name = "oldsite"
-    start_urls = [OLD_BASE_URL]
-    allowed_domains = [OLD_DOMAIN, CONTENTFUL_DOMAIN]
+class NewSiteScraper(BaseScraper):
+    name = "newsite"
+    start_urls = [MIGRATION_TEST_BASE_URL, MIGRATION_TEST_MOCK_URL]
+    allowed_domains = [MIGRATION_TEST_DOMAIN, CONTENTFUL_DOMAIN]
     
     link_extractor = scrapy.linkextractors.LinkExtractor(allow_domains=allowed_domains, deny_extensions=[])
 
