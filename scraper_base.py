@@ -3,6 +3,10 @@ from scrapy.spidermiddlewares.httperror import HttpError
 
 
 class BaseScraper(scrapy.Spider):
+    def start_requests(self):
+        for u in self.start_urls:
+            yield scrapy.Request(u, errback=self.parse_error)
+
     def parse(self, response):
 
         try:
@@ -30,9 +34,11 @@ class BaseScraper(scrapy.Spider):
     def parse_error(self, failure):
         if failure.check(HttpError):
             response = failure.value.response
+            request = failure.request
             self.logger.error('HttpError on %s', response.url)
 
             yield {
                 'url': response.url,
+                'original_url': request.url,
                 'status': response.status
             }

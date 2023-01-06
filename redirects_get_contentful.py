@@ -1,6 +1,6 @@
 import os
 import requests
-import json
+import csv
 
 CDA_API_KEY = os.environ["CDA_API_KEY"]
 
@@ -8,5 +8,8 @@ redirects = requests.get(f"https://cdn.contentful.com/spaces/knkzaf64jx5x/enviro
 
 redirects = redirects['fields']["redirects"] | redirects["fields"]["legacyUrls"]
 
-with open("output/contentful_redirects.json", "w") as f:
-    json.dump(redirects, f)
+with open("./output/contentful_redirects.csv", "w+") as f:
+    writer = csv.writer(f)
+    writer.writerow(["from_url", "to_url"])
+    for from_url, to_url in redirects.items():
+        writer.writerow([from_url, to_url])

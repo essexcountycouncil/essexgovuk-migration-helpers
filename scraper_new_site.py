@@ -2,15 +2,44 @@ from urllib.parse import urlparse, urljoin
 import scrapy
 import os
 import csv
-import json
+from pprint import pprint
 
 from scraper_base import BaseScraper
-from constants import MIGRATION_TEST_DOMAIN, MIGRATION_TEST_BASE_URL, MIGRATION_TEST_MOCK_URL, CONTENTFUL_DOMAIN
+from constants import MIGRATION_TEST_DOMAIN, MIGRATION_TEST_BASE_URL, MIGRATION_TEST_MOCK_URL, CONTENTFUL_DOMAIN, OLD_BASE_URL
+
+def process_from_url(row):
+    url = row["from_url"]
+    url = url.replace(" ", "%20")
+    url = urlparse(url).path
+    url = url.replace("*", "Vyx2gbebyyyV6bA5")
+    return url
+
+def get_urls():
+    # Get all the redirect URLs from the Contentful export
+    with open("./output/contentful_redirects.csv") as f:
+        reader = csv.DictReader(f)
+        redirect_from_urls = [process_from_url(row) for row in reader]
+    
+    # Find the latest old crawl file in the directory
+    oldcrawl_latest = sorted([x for x in os.listdir("./output") if x.startswith("oldcrawl")])[-1]
+
+    with open(os.path.join("./output", oldcrawl_latest)) as f:
+        old_urls = [x['url'] for x in csv.DictReader(f)]
+    
+    # We're only bringing in essex.gov.uk URLs from the old crawl
+    # i.e. we're excluding any ctfassets url
+    old_urls = [urlparse(x).path for x in old_urls if x.startswith(OLD_BASE_URL)]
+
+    all_urls = redirect_from_urls + old_urls
+
+    all_urls = [urljoin(MIGRATION_TEST_BASE_URL, x) for x in all_urls]
+
+    return all_urls
 
 class NewSiteScraper(BaseScraper):
     name = "newsite"
-    # TODO make start_urls read from the files
-    start_urls = [MIGRATION_TEST_BASE_URL, MIGRATION_TEST_MOCK_URL]
+    
+    start_urls = [MIGRATION_TEST_BASE_URL, MIGRATION_TEST_MOCK_URL] + get_urls()
     allowed_domains = [MIGRATION_TEST_DOMAIN, CONTENTFUL_DOMAIN]
     
     link_extractor = scrapy.linkextractors.LinkExtractor(allow_domains=allowed_domains, deny_extensions=[])
@@ -19,25 +48,3 @@ class NewSiteScraper(BaseScraper):
     # custom_settings = {
     #     "DEPTH_LIMIT": 1
     # }
-
-
-def get_urls():
-    with open("./output/contentful_redirects.json") as f:
-        redirects = json.load(f)
-
-    redirects = [x.replace("*", "Vyx2gbebyyyV6bA5") for x, _ in redirects.items()]
-    
-    oldcrawl_latest = [x for x in os.listdir("./output") if x.startswith("oldcrawl")][-1]
-
-    with open(os.path.join("./output", oldcrawl_latest)) as f:
-        old_urls = [x['url'] for x in csv.DictReader(f)]
-    
-    # TODO add in the base URLs to the start or replace the old base URL for the new one as required
-
-    all_urls = redirects + old_urls
-
-    print(all_urls)
-
-get_urls() 
-
-

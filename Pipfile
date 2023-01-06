@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 scrapy = "*"
+black = "*"
 
 [dev-packages]
 
