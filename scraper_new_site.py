@@ -4,7 +4,7 @@ import os
 import csv
 import json
 
-from basescraper import BaseScraper
+from scraper_base import BaseScraper
 from constants import MIGRATION_TEST_DOMAIN, MIGRATION_TEST_BASE_URL, MIGRATION_TEST_MOCK_URL, CONTENTFUL_DOMAIN
 
 class NewSiteScraper(BaseScraper):

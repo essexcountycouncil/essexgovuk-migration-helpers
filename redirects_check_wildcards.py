@@ -1,7 +1,7 @@
 import json
 import requests
 
-with open("output/contentful_redirects.json") as f:
+with open("output/redirects_contentful.json") as f:
     redirects = json.load(f)
 
 wildcards = [(key.rstrip("*"), value.replace("https://www.essex.gov.uk/", "")) for (key, value) in redirects.items() if key.endswith("*")]
@@ -21,5 +21,5 @@ for rewrite in should_be_rewrites.difference(rewrites):
     output += rewrite
     output += "\n"
 
-with open("output/missing_wildcard_redirects.txt", "w+") as f:
+with open("output/redirects_missing_wildcard.txt", "w+") as f:
     f.write(output)

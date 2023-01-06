@@ -1,7 +1,7 @@
 from urllib.parse import urlparse, urljoin
 import scrapy
 
-from basescraper import BaseScraper
+from scraper_base import BaseScraper
 from constants import OLD_DOMAIN, OLD_BASE_URL, CONTENTFUL_DOMAIN
 
 class OldSiteScraper(BaseScraper):
