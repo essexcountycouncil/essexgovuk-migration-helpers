@@ -4,12 +4,21 @@ import requests
 with open("output/redirects_contentful.json") as f:
     redirects = json.load(f)
 
-wildcards = [(key.rstrip("*"), value.replace("https://www.essex.gov.uk/", "")) for (key, value) in redirects.items() if key.endswith("*")]
-    
+wildcards = [
+    (key.rstrip("*"), value.replace("https://www.essex.gov.uk/", ""))
+    for (key, value) in redirects.items()
+    if key.endswith("*")
+]
 
-should_be_rewrites = {f"rewrite '^({key}.*)$' https://$host/{value} permanent;" for key, value in wildcards}
 
-nginx = requests.get("https://raw.githubusercontent.com/essexcountycouncil/essex-gov-uk-drupal/develop/nginx-conf/nginx.conf").text
+should_be_rewrites = {
+    f"rewrite '^({key}.*)$' https://$host/{value} permanent;"
+    for key, value in wildcards
+}
+
+nginx = requests.get(
+    "https://raw.githubusercontent.com/essexcountycouncil/essex-gov-uk-drupal/develop/nginx-conf/nginx.conf"
+).text
 
 nginx = [line.lstrip() for line in nginx.split("\n")]
 rewrites = {line for line in nginx if line.startswith("rewrite")}
