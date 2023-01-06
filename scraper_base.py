@@ -4,6 +4,7 @@ from scrapy.spidermiddlewares.httperror import HttpError
 
 class BaseScraper(scrapy.Spider):
     def start_requests(self):
+        """Override scrapy's defaults to call parse_error for start_urls that error"""
         for u in self.start_urls:
             yield scrapy.Request(u, errback=self.parse_error)
 
@@ -14,9 +15,11 @@ class BaseScraper(scrapy.Spider):
 
             yield {
                 'url': response.url,
+                'original_url': response.request.url,
                 'contains_table': contains_table,
                 'status': response.status,
-                'type': 'page'
+                'type': 'page',
+                'error': ""
             }
 
             for link in self.link_extractor.extract_links(response):
@@ -27,8 +30,11 @@ class BaseScraper(scrapy.Spider):
         except scrapy.exceptions.NotSupported:
             yield {
                 'url': response.url,
+                'original_url': response.request.url,
+                'contains_table': False,
                 'status': response.status,
-                'type': "file"
+                'type': "file",
+                "error": ""
             }
     
     def parse_error(self, failure):
@@ -40,5 +46,6 @@ class BaseScraper(scrapy.Spider):
             yield {
                 'url': response.url,
                 'original_url': request.url,
-                'status': response.status
+                'status': response.status,
+                "error": ""
             }
