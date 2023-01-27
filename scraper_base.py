@@ -20,6 +20,7 @@ class BaseScraper(scrapy.Spider):
         """
         try:
             contains_table = bool(response.xpath("//table"))
+            title = response.xpath("//title/text()").get()
 
             # Flag urls where the slug has not migrated correctly
             # Incorrect migrations are where one of the levels in the path is more than 80 chars
@@ -34,6 +35,7 @@ class BaseScraper(scrapy.Spider):
             yield {
                 "url": response.url,
                 "original_url": response.request.url,
+                "title": title,
                 "contains_table": contains_table,
                 "type": "page",
                 "error": error,
@@ -60,6 +62,7 @@ class BaseScraper(scrapy.Spider):
             yield {
                 "url": response.url,
                 "original_url": response.request.url,
+                "title": "",
                 "contains_table": False,
                 "type": "file",
                 "error": error,
@@ -74,7 +77,7 @@ class BaseScraper(scrapy.Spider):
         * Yield result for scrapy to output
         """
 
-        ### Filter out other kinds of errors, we just want HttpError
+        # Filter out other kinds of errors, we just want HttpError
         if not failure.check(scrapy.spidermiddlewares.httperror.HttpError):
             return
 
@@ -97,6 +100,7 @@ class BaseScraper(scrapy.Spider):
         yield {
             "url": response.url,
             "original_url": original_url,
+            "title": "",
             # Provide a description for common statuses, otherwise just pass through the status code
             "error": {404: "404: Page not found", 403: "403: Forbidden"}.get(
                 response.status, response.status
