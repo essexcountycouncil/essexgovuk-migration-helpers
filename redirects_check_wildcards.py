@@ -1,14 +1,15 @@
-import json
+import csv
 import requests
 
-with open("output/redirects_contentful.json") as f:
-    redirects = json.load(f)
+with open("output/contentful_redirects.csv") as f:
+    redirects = csv.DictReader(f)
 
-wildcards = [
-    (key.rstrip("*"), value.replace("https://www.essex.gov.uk/", ""))
-    for (key, value) in redirects.items()
-    if key.endswith("*")
-]
+    wildcards = [
+        (r["from_url"].rstrip("*"),
+         r["to_url"].replace("https://www.essex.gov.uk/", ""))
+        for r in redirects
+        if r["from_url"].endswith("*")
+    ]
 
 
 should_be_rewrites = {
@@ -30,5 +31,5 @@ for rewrite in should_be_rewrites.difference(rewrites):
     output += rewrite
     output += "\n"
 
-with open("output/redirects_missing_wildcard.txt", "w+") as f:
+with open("./output/redirects_missing_wildcard.txt", "w+") as f:
     f.write(output)
