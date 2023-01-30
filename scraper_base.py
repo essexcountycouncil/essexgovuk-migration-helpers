@@ -77,18 +77,27 @@ class BaseScraper(scrapy.Spider):
         * Yield result for scrapy to output
         """
 
-        # Filter out other kinds of errors, we just want HttpError
-        if not failure.check(scrapy.spidermiddlewares.httperror.HttpError):
-            return
-
-        response = failure.value.response
         request = failure.request
 
         # Find the original URL when we're doing redirects
         try:
             original_url = request.meta["redirect_urls"][0]
         except KeyError:
-            original_url = response.url
+            original_url = request.url
+
+        # For errors other than HttpError, we only have limited information
+        # They will not have a response object available
+        if not failure.check(scrapy.spidermiddlewares.httperror.HttpError):
+            yield {
+                "url": request.url,
+                "original_url": original_url,
+                "title": "",
+                "error": failure.getErrorMessage(),
+                "referer": "",
+                "type": ""
+            }
+
+        response = failure.value.response
 
         # Flag files where possible.
         # This includes both Contentful and migrated files
