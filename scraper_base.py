@@ -27,7 +27,7 @@ class BaseScraper(scrapy.Spider):
             error = ""
             parsed = urlparse(response.url)
             if (parsed.hostname == MIGRATION_TEST_DOMAIN) and any(
-                len(x) > 80 for x in parsed.path.split("/")
+                len(x) > 50 for x in parsed.path.replace("-", "/").split("/")
             ):
                 error = "Slug not migrated"
 
