@@ -22,14 +22,28 @@ class BaseScraper(scrapy.Spider):
             contains_table = bool(response.xpath("//table"))
             title = response.xpath("//title/text()").get()
 
+            text = "".join(x.get() for x in response.xpath("//text()"))
+
             # Flag urls where the slug has not migrated correctly
             # Incorrect migrations are where one of the levels in the path is more than 80 chars
             error = ""
             parsed = urlparse(response.url)
-            if (parsed.hostname == MIGRATION_TEST_DOMAIN) and any(
-                len(x) > 50 for x in parsed.path.replace("-", "/").split("/")
-            ):
-                error = "Slug not migrated"
+
+            if parsed.hostname == MIGRATION_TEST_DOMAIN:
+                if "{{Alerts-Inline" in text:
+                    # Yield data
+                    yield {
+                        "url": response.url,
+                        "original_url": response.request.url,
+                        "title": title,
+                        "contains_table": contains_table,
+                        "type": "page",
+                        "error": "Incorrect inline alert",
+                        "referer": "",
+                    }
+
+                if any(len(x) > 50 for x in parsed.path.replace("-", "/").split("/")):
+                    error = "Slug not migrated"
 
             # Yield data
             yield {
@@ -94,7 +108,7 @@ class BaseScraper(scrapy.Spider):
                 "title": "",
                 "error": failure.getErrorMessage(),
                 "referer": "",
-                "type": ""
+                "type": "",
             }
 
         response = failure.value.response
