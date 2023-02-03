@@ -29,7 +29,7 @@ class BaseScraper(scrapy.Spider):
         * Yield result for scrapy to output
         """
 
-        result = {x: "" for x in result_fields}
+        result = {x: "" for x in self.result_fields}
         result["url"] = response.url
         result["original_url"] = response.request.url
 
@@ -45,13 +45,21 @@ class BaseScraper(scrapy.Spider):
             parsed = urlparse(response.url)
 
             if parsed.hostname == MIGRATION_TEST_DOMAIN:
-                if "{{Alerts-Inline" in all_text:
+                if inline_error := "{{Alerts-Inline" in all_text:
                     result["error"] = "Incorrect inline alert"
                     yield result
 
-                if any(len(x) > 50 for x in parsed.path.replace("-", "/").split("/")):
+                if slug_error := any(
+                    len(x) > 50 for x in parsed.path.replace("-", "/").split("/")
+                ):
                     result["error"] = "Slug not migrated"
                     yield result
+
+                if not inline_error or slug_error:
+                    yield result
+
+            else:
+                yield result
 
             # Follow links in page
             for link in self.link_extractor.extract_links(response):
@@ -64,8 +72,8 @@ class BaseScraper(scrapy.Spider):
 
         # Handle files - files will return NotSupported once xpath is called on them
         except scrapy.exceptions.NotSupported:
-            result["referer"]: response.request.headers.get("Referer")
-            result["type"]: "file"
+            result["referer"] = response.request.headers.get("Referer")
+            result["type"] = "file"
 
             # Flag links to Contentful files
             if response.url.startswith(CONTENTFUL_BASE_URL):
@@ -81,11 +89,9 @@ class BaseScraper(scrapy.Spider):
         * Yield result for scrapy to output
         """
 
-        result = {x: "" for x in result_fields}
+        result = {x: "" for x in self.result_fields}
 
         request = failure.request
-
-        result["url"] = response.url
 
         # Find the original URL when we're doing redirects
         try:
@@ -93,23 +99,25 @@ class BaseScraper(scrapy.Spider):
         except KeyError:
             result["original_url"] = request.url
 
-        # For errors other than HttpError, we only have limited information
-        # They will not have a response object available
-        if not failure.check(scrapy.spidermiddlewares.httperror.HttpError):
-            result["error"] = failure.getErrorMessage()
-            yield result
+        # If it's a HttpError we can provide quite a lot of information
+        if failure.check(scrapy.spidermiddlewares.httperror.HttpError):
+            response = failure.value.response
+            result["url"] = response.url
 
-        response = failure.value.response
+            # Flag files where possible.
+            # This includes both Contentful and migrated files
+            # (because the migrated ones still have assets.ctfassets.net in them)
+            if CONTENTFUL_BASE_URL in response.url:
+                result["type"] = "file"
 
-        # Flag files where possible.
-        # This includes both Contentful and migrated files
-        # (because the migrated ones still have assets.ctfassets.net in them)
-        if CONTENTFUL_BASE_URL in response.url:
-            result["type"] = "file"
-
-        result["error"] = {404: "404: Page not found", 403: "403: Forbidden"}.get(
+            result["error"] = {404: "404: Page not found", 403: "403: Forbidden"}.get(
                 response.status, response.status
             )
-        result["referer"] = request.headers.get("Referer")
+            result["referer"] = request.headers.get("Referer")
+
+        # Otherwise, we have fairly limited information (we expect DNS errors here)
+        else:
+            result["url"] = request.url
+            result["error"] = failure.getErrorMessage()
         
         yield result

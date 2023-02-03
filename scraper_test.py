@@ -3,6 +3,7 @@ from constants import (
     MIGRATION_TEST_DOMAIN,
     CONTENTFUL_DOMAIN,
 )
+import scrapy
 
 
 class NewSiteScraper(BaseScraper):
@@ -15,9 +16,7 @@ class NewSiteScraper(BaseScraper):
 
     name = "newsite"
 
-    start_urls = [
-        "https://www-essex-gov-uk.nomensa.xyz/children-young-people-and-families/local-offer-care-leavers"
-    ]
+    start_urls = ["https://www-essex-gov-uk.nomensa.xyz/Publications/asdsadsa"]
     allowed_domains = [MIGRATION_TEST_DOMAIN, CONTENTFUL_DOMAIN]
 
     # deny_extensions = [] means that we don't exclude files from being checked
