@@ -19,7 +19,10 @@ def process_from_url(row):
     url = row["from_url"]
     url = url.replace(" ", "%20")
     url = urlparse(url).path
+
+    # Use an arbitrary string for wildcard redirects
     url = url.replace("*", "Vyx2gbebyyyV6bA5")
+
     return url
 
 
@@ -31,11 +34,6 @@ def get_urls():
 
     Add the new site domain to the paths
     """
-
-    # Get all the redirect URLs from the Contentful export
-    with open("./output/contentful_redirects.csv") as f:
-        reader = csv.DictReader(f)
-        redirect_from_urls = [process_from_url(row) for row in reader]
 
     # Find the latest old crawl file in the directory and open it
     oldcrawl_latest = sorted(
@@ -49,9 +47,22 @@ def get_urls():
     # i.e. we're excluding any ctfassets url
     old_urls = [urlparse(x).path for x in old_urls if x.startswith(OLD_BASE_URL)]
 
-    # Add in specific URLs here that we need to check (linked from Achieve form) that won't be picked up by the crawl
-    all_urls = redirect_from_urls + old_urls + ["care-calculator-complete-eligible", "care-calculator-self-funded"]
+    # SPECIFIC URLs that we need to add
+    # not included in the crawl...
 
+    # Contentful redirects
+    with open("./output/contentful_redirects.csv") as f:
+        redirect_from_urls = [process_from_url(row) for row in csv.DictReader(f)]
+
+    # Linked from Achieve form
+    achieve_urls = ["care-calculator-complete-eligible", "care-calculator-self-funded"]
+
+    # News URLs - going through each page in the pagination
+    news_urls = [f"news?page={i}" for i in range(1, 80)]
+
+    all_urls = redirect_from_urls + old_urls + achieve_urls + news_urls
+
+    # Add in the base URL
     all_urls = [urljoin(MIGRATION_TEST_BASE_URL, x) for x in all_urls]
 
     return all_urls
@@ -74,8 +85,3 @@ class NewSiteScraper(BaseScraper):
     link_extractor = scrapy.linkextractors.LinkExtractor(
         allow_domains=allowed_domains, deny_extensions=[]
     )
-
-    # Uncomment this if you want to restrict the depth limit - can be handy for testing
-    # custom_settings = {
-    #     "DEPTH_LIMIT": 1
-    # }

@@ -32,6 +32,7 @@ class BaseScraper(scrapy.Spider):
         result = {x: "" for x in self.result_fields}
         result["url"] = response.url
         result["original_url"] = response.request.url
+        result["referer"] = response.request.headers.get("Referer")
 
         try:
             result["contains_table"] = bool(response.xpath("//table"))
@@ -72,7 +73,6 @@ class BaseScraper(scrapy.Spider):
 
         # Handle files - files will return NotSupported once xpath is called on them
         except scrapy.exceptions.NotSupported:
-            result["referer"] = response.request.headers.get("Referer")
             result["type"] = "file"
 
             # Flag links to Contentful files
@@ -119,5 +119,5 @@ class BaseScraper(scrapy.Spider):
         else:
             result["url"] = request.url
             result["error"] = failure.getErrorMessage()
-        
+
         yield result

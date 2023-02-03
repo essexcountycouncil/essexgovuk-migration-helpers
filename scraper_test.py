@@ -16,7 +16,10 @@ class NewSiteScraper(BaseScraper):
 
     name = "newsite"
 
-    start_urls = ["https://www-essex-gov-uk.nomensa.xyz/Publications/asdsadsa"]
+    start_urls = [
+        f"https://{MIGRATION_TEST_DOMAIN}/news?page={i}" for i in range(1, 80)
+    ]
+
     allowed_domains = [MIGRATION_TEST_DOMAIN, CONTENTFUL_DOMAIN]
 
     # deny_extensions = [] means that we don't exclude files from being checked
