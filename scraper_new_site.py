@@ -49,7 +49,8 @@ def get_urls():
     # i.e. we're excluding any ctfassets url
     old_urls = [urlparse(x).path for x in old_urls if x.startswith(OLD_BASE_URL)]
 
-    all_urls = redirect_from_urls + old_urls
+    # Add in specific URLs here that we need to check (linked from Achieve form) that won't be picked up by the crawl
+    all_urls = redirect_from_urls + old_urls + ["care-calculator-complete-eligible", "care-calculator-self-funded"]
 
     all_urls = [urljoin(MIGRATION_TEST_BASE_URL, x) for x in all_urls]
 
