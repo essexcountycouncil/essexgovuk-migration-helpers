@@ -5,6 +5,16 @@ from constants import CONTENTFUL_BASE_URL, MIGRATION_TEST_DOMAIN
 
 
 class BaseScraper(scrapy.Spider):
+    result_fields = (
+        "url",
+        "original_url",
+        "title",
+        "contains_table",
+        "type",
+        "error",
+        "referer",
+    )
+
     def start_requests(self):
         """Override scrapy's defaults to call parse_error for start_urls that error"""
         for u in self.start_urls:
@@ -18,43 +28,30 @@ class BaseScraper(scrapy.Spider):
         * For pages follow all links
         * Yield result for scrapy to output
         """
-        try:
-            contains_table = bool(response.xpath("//table"))
-            title = response.xpath("//title/text()").get()
 
-            text = "".join(x.get() for x in response.xpath("//text()"))
+        result = {x: "" for x in result_fields}
+        result["url"] = response.url
+        result["original_url"] = response.request.url
+
+        try:
+            result["contains_table"] = bool(response.xpath("//table"))
+            result["title"] = response.xpath("//title/text()").get()
+            result["type"] = "page"
+
+            all_text = "".join(x.get() for x in response.xpath("//text()"))
 
             # Flag urls where the slug has not migrated correctly
             # Incorrect migrations are where one of the levels in the path is more than 80 chars
-            error = ""
             parsed = urlparse(response.url)
 
             if parsed.hostname == MIGRATION_TEST_DOMAIN:
-                if "{{Alerts-Inline" in text:
-                    # Yield data
-                    yield {
-                        "url": response.url,
-                        "original_url": response.request.url,
-                        "title": title,
-                        "contains_table": contains_table,
-                        "type": "page",
-                        "error": "Incorrect inline alert",
-                        "referer": "",
-                    }
+                if "{{Alerts-Inline" in all_text:
+                    result["error"] = "Incorrect inline alert"
+                    yield result
 
                 if any(len(x) > 50 for x in parsed.path.replace("-", "/").split("/")):
-                    error = "Slug not migrated"
-
-            # Yield data
-            yield {
-                "url": response.url,
-                "original_url": response.request.url,
-                "title": title,
-                "contains_table": contains_table,
-                "type": "page",
-                "error": error,
-                "referer": "",
-            }
+                    result["error"] = "Slug not migrated"
+                    yield result
 
             # Follow links in page
             for link in self.link_extractor.extract_links(response):
@@ -67,21 +64,14 @@ class BaseScraper(scrapy.Spider):
 
         # Handle files - files will return NotSupported once xpath is called on them
         except scrapy.exceptions.NotSupported:
+            result["referer"]: response.request.headers.get("Referer")
+            result["type"]: "file"
 
             # Flag links to Contentful files
-            error = ""
             if response.url.startswith(CONTENTFUL_BASE_URL):
-                error = "Link to Contentful file"
+                result["error"] = "Link to Contentful file"
 
-            yield {
-                "url": response.url,
-                "original_url": response.request.url,
-                "title": "",
-                "contains_table": False,
-                "type": "file",
-                "error": error,
-                "referer": response.request.headers.get("Referer"),
-            }
+            yield result
 
     def parse_error(self, failure):
         """
@@ -91,43 +81,35 @@ class BaseScraper(scrapy.Spider):
         * Yield result for scrapy to output
         """
 
+        result = {x: "" for x in result_fields}
+
         request = failure.request
+
+        result["url"] = response.url
 
         # Find the original URL when we're doing redirects
         try:
-            original_url = request.meta["redirect_urls"][0]
+            result["original_url"] = request.meta["redirect_urls"][0]
         except KeyError:
-            original_url = request.url
+            result["original_url"] = request.url
 
         # For errors other than HttpError, we only have limited information
         # They will not have a response object available
         if not failure.check(scrapy.spidermiddlewares.httperror.HttpError):
-            yield {
-                "url": request.url,
-                "original_url": original_url,
-                "title": "",
-                "error": failure.getErrorMessage(),
-                "referer": "",
-                "type": "",
-            }
+            result["error"] = failure.getErrorMessage()
+            yield result
 
         response = failure.value.response
 
         # Flag files where possible.
         # This includes both Contentful and migrated files
         # (because the migrated ones still have assets.ctfassets.net in them)
-        _type = ""
         if CONTENTFUL_BASE_URL in response.url:
-            _type = "file"
+            result["type"] = "file"
 
-        yield {
-            "url": response.url,
-            "original_url": original_url,
-            "title": "",
-            # Provide a description for common statuses, otherwise just pass through the status code
-            "error": {404: "404: Page not found", 403: "403: Forbidden"}.get(
+        result["error"] = {404: "404: Page not found", 403: "403: Forbidden"}.get(
                 response.status, response.status
-            ),
-            "referer": request.headers.get("Referer"),
-            "type": _type,
-        }
+            )
+        result["referer"] = request.headers.get("Referer")
+        
+        yield result
