@@ -17,7 +17,7 @@ class NewSiteScraper(BaseScraper):
     name = "newsite"
 
     start_urls = [
-        f"https://{MIGRATION_TEST_DOMAIN}/news?page={i}" for i in range(1, 80)
+        f"https://www-essex-gov-uk.nomensa.xyz/adult-social-care-and-health/personal-budgets/help-find-your-own-care-and-support"
     ]
 
     allowed_domains = [MIGRATION_TEST_DOMAIN, CONTENTFUL_DOMAIN]
@@ -27,4 +27,4 @@ class NewSiteScraper(BaseScraper):
         allow_domains=allowed_domains, deny_extensions=[]
     )
 
-    custom_settings = {"DEPTH_LIMIT": 1}
+    custom_settings = {"DEPTH_LIMIT": 2}

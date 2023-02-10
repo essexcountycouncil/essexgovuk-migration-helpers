@@ -1,11 +1,17 @@
 import scrapy
 from urllib.parse import urlparse
 
-from shared.constants import CONTENTFUL_BASE_URL, MIGRATION_TEST_DOMAIN
+from shared.constants import (
+    CONTENTFUL_BASE_URL,
+    MIGRATION_TEST_DOMAIN,
+    NON_PROD_DOMAINS,
+)
 from shared.helpers import FixedKeyDict
 
 
 class BaseScraper(scrapy.Spider):
+    _all_link_extractor = scrapy.linkextractors.LinkExtractor(deny=r"^mailto:.*$")
+
     def create_output_dict(self):
         return FixedKeyDict(
             "url", "original_url", "title", "contains_table", "type", "error", "referer"
@@ -28,7 +34,7 @@ class BaseScraper(scrapy.Spider):
         result = self.create_output_dict()
         result["url"] = response.url
         result["original_url"] = response.request.url
-        result["referer"] = response.request.headers.get("Referer")
+        result["referer"] = str(response.request.headers.get("Referer"))
 
         try:
             result["contains_table"] = bool(response.xpath("//table"))
@@ -54,6 +60,24 @@ class BaseScraper(scrapy.Spider):
 
                 if not inline_error or slug_error:
                     yield result
+
+                for link in self._all_link_extractor.extract_links(response):
+                    parsed = urlparse(link.url)
+
+                    # Detect corrupted mailto: links
+                    if link.url.startswith("https://mailto:"):
+                        result["error"] = "Incorrect mailto: link"
+                        yield result
+
+                    # Detect links to incorrect environments
+                    elif parsed.hostname in NON_PROD_DOMAINS:
+                        result = self.create_output_dict()
+                        result["url"] = link.url
+                        result["original_url"] = link.url
+                        result["referer"] = str(response.request.url)
+                        result["type"] = "page"
+                        result["error"] = f"Link to incorrect domain {parsed.hostname}"
+                        yield result
 
             else:
                 yield result
@@ -109,7 +133,7 @@ class BaseScraper(scrapy.Spider):
             result["error"] = {404: "404: Page not found", 403: "403: Forbidden"}.get(
                 response.status, response.status
             )
-            result["referer"] = request.headers.get("Referer")
+            result["referer"] = str(request.headers.get("Referer"))
 
         # Otherwise, we have fairly limited information (we expect DNS errors here)
         else:
