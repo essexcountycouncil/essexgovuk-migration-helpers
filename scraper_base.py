@@ -2,18 +2,14 @@ import scrapy
 from urllib.parse import urlparse
 
 from shared.constants import CONTENTFUL_BASE_URL, MIGRATION_TEST_DOMAIN
+from shared.helpers import FixedKeyDict
 
 
 class BaseScraper(scrapy.Spider):
-    result_fields = (
-        "url",
-        "original_url",
-        "title",
-        "contains_table",
-        "type",
-        "error",
-        "referer",
-    )
+    def create_output_dict(self):
+        return FixedKeyDict(
+            "url", "original_url", "title", "contains_table", "type", "error", "referer"
+        )
 
     def start_requests(self):
         """Override scrapy's defaults to call parse_error for start_urls that error"""
@@ -29,7 +25,7 @@ class BaseScraper(scrapy.Spider):
         * Yield result for scrapy to output
         """
 
-        result = {x: "" for x in self.result_fields}
+        result = self.create_output_dict()
         result["url"] = response.url
         result["original_url"] = response.request.url
         result["referer"] = response.request.headers.get("Referer")
@@ -89,7 +85,7 @@ class BaseScraper(scrapy.Spider):
         * Yield result for scrapy to output
         """
 
-        result = {x: "" for x in self.result_fields}
+        result = self.create_output_dict()
 
         request = failure.request
 
