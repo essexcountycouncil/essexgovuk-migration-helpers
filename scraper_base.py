@@ -1,7 +1,7 @@
 import scrapy
 from urllib.parse import urlparse
 
-from constants import CONTENTFUL_BASE_URL, MIGRATION_TEST_DOMAIN
+from shared.constants import CONTENTFUL_BASE_URL, MIGRATION_TEST_DOMAIN
 
 
 class BaseScraper(scrapy.Spider):

@@ -5,7 +5,7 @@ import csv
 from pprint import pprint
 
 from scraper_base import BaseScraper
-from constants import (
+from shared.constants import (
     MIGRATION_TEST_DOMAIN,
     MIGRATION_TEST_BASE_URL,
     MIGRATION_TEST_MOCK_URL,

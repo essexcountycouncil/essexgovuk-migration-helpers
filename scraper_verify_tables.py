@@ -4,7 +4,7 @@ from urllib.parse import urlparse, urljoin
 import scrapy
 
 from scraper_base import BaseScraper
-from constants import OLD_BASE_URL, MIGRATION_TEST_BASE_URL, MIGRATION_TEST_DOMAIN
+from shared.constants import OLD_BASE_URL, MIGRATION_TEST_BASE_URL, MIGRATION_TEST_DOMAIN
 
 # Find the latest old crawl file in the directory
 oldcrawl_latest = sorted(

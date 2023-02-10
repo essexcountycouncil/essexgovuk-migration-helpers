@@ -2,8 +2,8 @@ import json
 import datetime
 from collections import namedtuple, Counter
 from pprint import pprint
-from helpers import get_latest_file
-from constants import MIGRATION_TEST_BASE_URL#
+from shared.helpers import get_latest_file
+from shared.constants import MIGRATION_TEST_BASE_URL
 import csv
 
 with open(get_latest_file("./output", "contentful-export")) as f:

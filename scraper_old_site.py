@@ -1,7 +1,7 @@
 import scrapy
 
 from scraper_base import BaseScraper
-from constants import OLD_DOMAIN, OLD_BASE_URL, CONTENTFUL_DOMAIN
+from shared.constants import OLD_DOMAIN, OLD_BASE_URL, CONTENTFUL_DOMAIN
 
 
 class OldSiteScraper(BaseScraper):
