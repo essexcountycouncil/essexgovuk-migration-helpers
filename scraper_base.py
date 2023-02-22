@@ -34,7 +34,8 @@ class BaseScraper(scrapy.Spider):
         result = self.create_output_dict()
         result["url"] = response.url
         result["original_url"] = response.request.url
-        result["referer"] = str(response.request.headers.get("Referer"))
+        if (referer := response.request.headers.get("Referer")) is not None:
+            result["referer"] = referer.decode()
 
         try:
             result["contains_table"] = bool(response.xpath("//table"))
@@ -74,7 +75,8 @@ class BaseScraper(scrapy.Spider):
                         result = self.create_output_dict()
                         result["url"] = link.url
                         result["original_url"] = link.url
-                        result["referer"] = str(response.request.url)
+                        if (referer := response.request.url) is not None:
+                            result["referer"] = referer.decode()
                         result["type"] = "page"
                         result["error"] = f"Link to incorrect domain {parsed.hostname}"
                         yield result
@@ -133,7 +135,9 @@ class BaseScraper(scrapy.Spider):
             result["error"] = {404: "404: Page not found", 403: "403: Forbidden"}.get(
                 response.status, response.status
             )
-            result["referer"] = str(request.headers.get("Referer"))
+
+            if (referer := request.headers.get("Referer")) is not None:
+                result["referer"] = referer.decode()
 
         # Otherwise, we have fairly limited information (we expect DNS errors here)
         else:
