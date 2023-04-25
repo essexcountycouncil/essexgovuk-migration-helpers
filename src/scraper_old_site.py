@@ -1,6 +1,6 @@
 import scrapy
 
-from scraper_base import BaseScraper
+from shared.scraper_base import BaseScraper
 from shared.constants import OLD_DOMAIN, OLD_BASE_URL, CONTENTFUL_DOMAIN
 
 

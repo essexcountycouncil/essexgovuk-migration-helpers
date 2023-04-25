@@ -4,11 +4,11 @@ import os
 import csv
 from pprint import pprint
 
-from scraper_base import BaseScraper
+from shared.scraper_base import BaseScraper
 from shared.constants import (
     MIGRATION_TEST_DOMAIN,
     MIGRATION_TEST_BASE_URL,
-    MIGRATION_TEST_MOCK_URL,
+    MIGRATION_TEST_START_URL,
     CONTENTFUL_DOMAIN,
     OLD_BASE_URL,
 )
@@ -45,17 +45,20 @@ def get_urls():
 
     # We're only bringing in essex.gov.uk URLs from the old crawl
     # i.e. we're excluding any ctfassets url
-    old_urls = [urlparse(x).path for x in old_urls if x.startswith(OLD_BASE_URL)]
+    old_urls = [
+        urlparse(x).path for x in old_urls if x.startswith(OLD_BASE_URL)]
 
     # SPECIFIC URLs that we need to add
     # not included in the crawl...
 
     # Contentful redirects
     with open("./output/contentful_redirects.csv") as f:
-        redirect_from_urls = [process_from_url(row) for row in csv.DictReader(f)]
+        redirect_from_urls = [process_from_url(
+            row) for row in csv.DictReader(f)]
 
     # Linked from Achieve form
-    achieve_urls = ["care-calculator-complete-eligible", "care-calculator-self-funded"]
+    achieve_urls = ["care-calculator-complete-eligible",
+                    "care-calculator-self-funded"]
 
     # News URLs - going through each page in the pagination
     news_urls = [f"news?page={i}" for i in range(1, 80)]
@@ -78,7 +81,8 @@ class NewSiteScraper(BaseScraper):
 
     name = "newsite"
 
-    start_urls = [MIGRATION_TEST_BASE_URL, MIGRATION_TEST_MOCK_URL] + get_urls()
+    start_urls = [MIGRATION_TEST_BASE_URL,]
+    # MIGRATION_TEST_START_URL,]  # + get_urls()
     allowed_domains = [MIGRATION_TEST_DOMAIN, CONTENTFUL_DOMAIN]
 
     # deny_extensions = [] means that we don't exclude files from being checked

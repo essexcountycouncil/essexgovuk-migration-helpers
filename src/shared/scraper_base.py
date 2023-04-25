@@ -10,7 +10,8 @@ from shared.helpers import FixedKeyDict
 
 
 class BaseScraper(scrapy.Spider):
-    _all_link_extractor = scrapy.linkextractors.LinkExtractor(deny=r"^mailto:.*$")
+    _all_link_extractor = scrapy.linkextractors.LinkExtractor(
+        deny=r"^mailto:.*$")
 
     def create_output_dict(self):
         return FixedKeyDict(
@@ -20,7 +21,7 @@ class BaseScraper(scrapy.Spider):
     def start_requests(self):
         """Override scrapy's defaults to call parse_error for start_urls that error"""
         for u in self.start_urls:
-            yield scrapy.Request(u, errback=self.parse_error)
+            yield scrapy.Request(u, cookies={"SESS": "crawler"}, errback=self.parse_error)
 
     def parse(self, response):
         """
@@ -76,7 +77,10 @@ class BaseScraper(scrapy.Spider):
                         result["url"] = link.url
                         result["original_url"] = link.url
                         if (referer := response.request.url) is not None:
-                            result["referer"] = referer.decode()
+                            if isinstance(referer, str):
+                                result["referer"] = referer
+                            else:
+                                result["referer"] = referer.decode()
                         result["type"] = "page"
                         result["error"] = f"Link to incorrect domain {parsed.hostname}"
                         yield result
@@ -90,7 +94,7 @@ class BaseScraper(scrapy.Spider):
                 if "?" not in link.url:
                     # Must include errback param here so that errors are also logged
                     yield response.follow(
-                        link, callback=self.parse, errback=self.parse_error
+                        link, cookies={"SESS": "crawler"}, callback=self.parse, errback=self.parse_error
                     )
 
         # Handle files - files will return NotSupported once xpath is called on them

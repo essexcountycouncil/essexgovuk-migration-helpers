@@ -1,4 +1,4 @@
-from scraper_base import BaseScraper
+from shared.scraper_base import BaseScraper
 from shared.constants import (
     MIGRATION_TEST_DOMAIN,
     CONTENTFUL_DOMAIN,
