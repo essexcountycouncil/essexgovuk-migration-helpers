@@ -81,8 +81,8 @@ class NewSiteScraper(BaseScraper):
 
     name = "newsite"
 
-    start_urls = [MIGRATION_TEST_BASE_URL,]
-    # MIGRATION_TEST_START_URL,]  # + get_urls()
+    start_urls = [MIGRATION_TEST_BASE_URL,
+                  MIGRATION_TEST_START_URL,] + get_urls()
     allowed_domains = [MIGRATION_TEST_DOMAIN, CONTENTFUL_DOMAIN]
 
     # deny_extensions = [] means that we don't exclude files from being checked
