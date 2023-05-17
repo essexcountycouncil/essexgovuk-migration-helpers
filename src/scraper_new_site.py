@@ -36,9 +36,14 @@ def get_urls():
     """
 
     # Find the latest old crawl file in the directory and open it
-    oldcrawl_latest = sorted(
-        [x for x in os.listdir("./output") if x.startswith("oldcrawl")]
-    )[-1]
+
+    try:
+        oldcrawl_latest = sorted(
+            [x for x in os.listdir("./output") if x.startswith("oldcrawl")]
+        )[-1]
+    except IndexError:
+        raise FileNotFoundError(
+            "Old crawl file not found. Run scraper_old_site.py first.")
 
     with open(os.path.join("./output", oldcrawl_latest)) as f:
         old_urls = [x["url"] for x in csv.DictReader(f)]
