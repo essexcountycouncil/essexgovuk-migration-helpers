@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "contentful-cli": "^2.6.9"
+  }
+}
