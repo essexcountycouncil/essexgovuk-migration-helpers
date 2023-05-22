@@ -13,7 +13,7 @@ with open("output/contentful_redirects.csv") as f:
 
 
 should_be_rewrites = {
-    f"rewrite '^({key}.*)$' https://$host/{value} permanent;"
+    f"rewrite '^({key}.*)$' https://$customhost/{value} permanent;"
     for key, value in wildcards
 }
 
