@@ -42,7 +42,7 @@ class BaseScraper(scrapy.Spider):
             result["contains_table"] = bool(response.xpath("//table"))
             result["title"] = response.xpath("//title/text()").get()
             result["meta_desc"] = response.xpath(
-                'string(//head/meta[@name="description"]/@content)').get()
+                'string(//head/meta[@name="description" or @name="Description"]/@content)').get()
             result["type"] = "page"
 
             all_text = "".join(x.get() for x in response.xpath("//text()"))
