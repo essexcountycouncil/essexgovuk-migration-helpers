@@ -15,7 +15,7 @@ class BaseScraper(scrapy.Spider):
 
     def create_output_dict(self):
         return FixedKeyDict(
-            "url", "original_url", "title", "contains_table", "type", "error", "referer"
+            "url", "original_url", "title", "contains_table", "type", "error", "referer", "meta_desc"
         )
 
     def start_requests(self):
@@ -41,6 +41,8 @@ class BaseScraper(scrapy.Spider):
         try:
             result["contains_table"] = bool(response.xpath("//table"))
             result["title"] = response.xpath("//title/text()").get()
+            result["meta_desc"] = response.xpath(
+                'string(//head/meta[@name="description"]/@content)').get()
             result["type"] = "page"
 
             all_text = "".join(x.get() for x in response.xpath("//text()"))
