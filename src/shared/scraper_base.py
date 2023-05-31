@@ -1,5 +1,6 @@
 import scrapy
 from urllib.parse import urlparse
+import re
 
 from shared.constants import (
     CONTENTFUL_BASE_URL,
@@ -7,6 +8,9 @@ from shared.constants import (
     NON_PROD_DOMAINS,
 )
 from shared.helpers import FixedKeyDict
+
+POSTCODE_REGEX = re.compile(
+    r'\w\s[A-Za-z][A-Ha-hJ-Yj-y]?\d[A-Za-z0-9]? ?\d[A-Za-z]{2}')
 
 
 class BaseScraper(scrapy.Spider):
@@ -56,13 +60,17 @@ class BaseScraper(scrapy.Spider):
                     result["error"] = "Incorrect inline alert"
                     yield result
 
+                if postcode_error := re.search(POSTCODE_REGEX, all_text) is not None:
+                    result["error"] = "Incorrect address"
+                    yield result
+
                 if slug_error := any(
                     len(x) > 50 for x in parsed.path.replace("-", "/").split("/")
                 ):
                     result["error"] = "Slug not migrated"
                     yield result
 
-                if not inline_error or slug_error:
+                if not any((inline_error, postcode_error, slug_error)):
                     yield result
 
                 for link in self._all_link_extractor.extract_links(response):

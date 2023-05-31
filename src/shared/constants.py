@@ -3,8 +3,7 @@ OLD_BASE_URL = f"https://{OLD_DOMAIN}"
 
 MIGRATION_TEST_DOMAIN = "beta.essex.gov.uk"
 MIGRATION_TEST_BASE_URL = f"https://{MIGRATION_TEST_DOMAIN}"
-MIGRATION_TEST_START_URL = MIGRATION_TEST_BASE_URL + \
-    "/births-ceremonies-and-deaths/get-married-or-form-civil-partnership"
+MIGRATION_TEST_START_URL = MIGRATION_TEST_BASE_URL
 
 CONTENTFUL_DOMAIN = "assets.ctfassets.net"
 CONTENTFUL_BASE_URL = f"https://{CONTENTFUL_DOMAIN}"
