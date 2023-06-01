@@ -12,6 +12,8 @@ from shared.helpers import FixedKeyDict
 POSTCODE_REGEX = re.compile(
     r'\w\s[A-Za-z][A-Ha-hJ-Yj-y]?\d[A-Za-z0-9]? ?\d[A-Za-z]{2}')
 
+FIND_ADDRESS_ERRORS = False
+
 
 class BaseScraper(scrapy.Spider):
     _all_link_extractor = scrapy.linkextractors.LinkExtractor(
@@ -60,9 +62,10 @@ class BaseScraper(scrapy.Spider):
                     result["error"] = "Incorrect inline alert"
                     yield result
 
-                if postcode_error := re.search(POSTCODE_REGEX, all_text) is not None:
-                    result["error"] = "Incorrect address"
-                    yield result
+                if FIND_ADDRESS_ERRORS:
+                    if postcode_error := re.search(POSTCODE_REGEX, all_text) is not None:
+                        result["error"] = "Incorrect address"
+                        yield result
 
                 if slug_error := any(
                     len(x) > 50 for x in parsed.path.replace("-", "/").split("/")
