@@ -62,10 +62,11 @@ class BaseScraper(scrapy.Spider):
                     result["error"] = "Incorrect inline alert"
                     yield result
 
+                postcode_error = re.search(
+                    POSTCODE_REGEX, all_text) is not None
                 if FIND_ADDRESS_ERRORS:
-                    if postcode_error := re.search(POSTCODE_REGEX, all_text) is not None:
-                        result["error"] = "Incorrect address"
-                        yield result
+                    result["error"] = "Incorrect address"
+                    yield result
 
                 if slug_error := any(
                     len(x) > 50 for x in parsed.path.replace("-", "/").split("/")
