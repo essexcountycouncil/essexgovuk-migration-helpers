@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "contentful-cli": "^2.6.9"
+    "contentful-cli": "^2.6.9",
+    "contentful-management": "^10.38.3"
   }
 }
