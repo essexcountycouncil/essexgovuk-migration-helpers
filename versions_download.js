@@ -39,11 +39,13 @@ const getData = async () => {
 
   }
 
+  // just for getting redirects
+  allEntries = allEntries.filter( (entry) => entry.sys.id === "638ONr6e4wyaoOo6w8oISU" ) 
+  console.log(allEntries)
+
   const totalLenEntries = allEntries.length
 
   console.log('Total Entries count', totalLenEntries)
-
-
 
   const snapshots = {}
 
@@ -55,7 +57,7 @@ const getData = async () => {
 
     await entry
 
-      .getSnapshots()
+      .getSnapshots({skip: 50, limit: 50})
 
       .then((data) => {
 
